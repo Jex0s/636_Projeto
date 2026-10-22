@@ -117,13 +117,41 @@ fi
 echo "OK: website acessivel em http://127.0.0.1/" | tee -a "$LOG"
 
 # PASSO 12 - Confirmar que o Apache interpreta PHP.
-# Procuramos o texto "PHP Version" na resposta da pagina info.php.
+# Criamos um ficheiro temporario para guardar a resposta de info.php
+# Isto evita erros causados pela leitura incompleta da resposta.
+
 echo "PASSO 12 - Teste de PHP" | tee -a "$LOG"
-curl -fsS http://127.0.0.1/info.php | grep -q "PHP Version"
-if [ $? -ne 0 ]; then
-    echo "ERRO: nao foi possivel confirmar a execucao de PHP." | tee -a "$LOG"
+
+FICHEIRO_TESTE=$(mktemp)
+
+# Verificar se foi possivel criar o ficheiro temporario.
+if [ $? -ne 0]; then
+    echo "ERRO: nao foi possivel criar o ficheiro temporario." | tee -a "$LOG"
     exit 1
 fi
+
+# Guardar a resposta da pagina PHP no ficheiro temporário
+curl -fsS -o "$FICHEIRO_TESTE" http://127.0.0.1/info.php
+
+if [ $? -ne 0 ]; then
+    echo "ERRO: a pagina PHP nao respondeu." | tee -a "$LOG"
+    rm -f "$FICHEIRO_TESTE"
+    exit 1
+fi
+
+# Procurar a expressao PHP Version na resposta.
+grep -q "PHP Version" "FICHEIRO_TESTE"
+
+if [ $? -ne 0 ]; then
+    echo "ERRO: o PHP não foi interpretado corretamente." | tee -a "$LOG"
+    rm -f "$FICHEIRO_TESTE"
+    exit 1
+fi
+
+# Apagar o ficheiro temporario porque ja nao e necessario
+rm -f "$FICHEIRO_TESTE"
+
+
 
 echo "OK: PHP interpretado corretamente pelo Apache." | tee -a "$LOG"
 echo "===== Script 01 concluido: $(date) =====" | tee -a "$LOG"
