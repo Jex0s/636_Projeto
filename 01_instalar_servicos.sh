@@ -125,7 +125,7 @@ echo "PASSO 12 - Teste de PHP" | tee -a "$LOG"
 FICHEIRO_TESTE=$(mktemp)
 
 # Verificar se foi possivel criar o ficheiro temporario.
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
     echo "ERRO: nao foi possivel criar o ficheiro temporario." | tee -a "$LOG"
     exit 1
 fi
@@ -140,7 +140,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Procurar a expressao PHP Version na resposta.
-grep -q "PHP Version" "FICHEIRO_TESTE"
+grep -q "PHP Version" "$FICHEIRO_TESTE"
 
 if [ $? -ne 0 ]; then
     echo "ERRO: o PHP não foi interpretado corretamente." | tee -a "$LOG"
