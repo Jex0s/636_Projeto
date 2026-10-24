@@ -178,7 +178,8 @@ UC00636 — Publicação pela Internet (GUIA, SEM ALTERAR A REDE)
    Windows Firewall necessita regra de entrada adequada e restrita.
 6. NÃO utilizar DMZ. NÃO expor MariaDB TCP 3306 nem SSH TCP 22 indiscriminadamente.
 7. Após a defesa, retirar regras temporárias do router/Windows/VMware.
-NOTA: a publicação pública e HTTPS exigem teste externo real, ainda não comprovado.
+NOTA: HTTP externo validado no ambiente de demonstracao em 24/10/2026 via 4G+.
+HTTPS e IP publico fixo continuam pendentes.
 EOF
 }
 
