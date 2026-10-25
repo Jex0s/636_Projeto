@@ -42,7 +42,7 @@ while [ "$opcao" != "0" ]; do
 		7) 	script="07_tuning_apache.sh" ;;
 		8) 	script="08_tuning_mariadb.sh" ;;
 		9) 	script="09_php.sh" ;;
-		10) 	script="10_backup.sh" ;;
+		10) 	script="10_atualizacoes_backup.sh" ;;
 		11) 	script="11_monitorizacao.sh" ;;
 		12) 	script="todos" ;;
 		0) 	echo "A sair..."
@@ -58,7 +58,11 @@ while [ "$opcao" != "0" ]; do
 		for s in "$pasta"/[0-9][0-9]_*.sh; do
 			echo ""
 			echo ">>> A correr $s"
-			bash "$s"
+			if [ "$s" = "$pasta/10_atualizacoes_backup_sh" ]; then
+		bash "$s" backup
+	else
+		bash "$s"
+	fi
 			if [ $? -ne 0 ]; then
 				echo "O script $s falhou. Os restantes não foram corridos."
 				break
@@ -66,7 +70,22 @@ while [ "$opcao" != "0" ]; do
 		done
 	elif [ -n "$script" ]; then		# verifica se $script tem alguma coisa
 		if [ -f "$pasta/$script" ]; then
-			bash "$pasta/$script"
+			if [ "$opcao" = "10" ]; then
+		echo "1 - fazer backup"
+		echo "2 - fazer backup e actualizar o sistema"
+		echo "3 - consultar estado"
+		echo "0 - voltar"
+		read -r -p "escolhe; " escolha
+	case "$escolha" in
+	1) bash "$pasta/$script" backup ;;
+	2) bash "$pasta/$script" update ;;
+	3) bash "$pasta/$script" status ;;
+	0) ;;
+	*) echo "opcao invalida." ;;
+	esac
+else
+	bash "$pasta/script"
+		fi
 		else
 			echo "O script $script ainda não existe." # para evitar erros durante a elaboração
 		fi
