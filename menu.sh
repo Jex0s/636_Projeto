@@ -55,10 +55,22 @@ while [ "$opcao" != "0" ]; do
 # SE A OPÇÃO FOR INVÁLIDA, $script FICA VAZIO E NÃO CORRE NADA
 
 	if [ "$script" = "todos" ]; then	# corre todos por ordem
+		echo "ATENÇÃO: esta opção executa os 11 scripts."
+		echo "Pode alterar serviços e configurações."
+		echo "Utilizar apenas numa VM preparada para testes."
+
+		read -r -p "Escreve SIM para confirmar: " confirmacao
+
+		if [ "$confirmacao" != "SIM" ]; then
+		    echo "Operação cancelada."
+		    read -r -p "Carrega Enter para voltar ao menu..."
+		    continue
+		fi
+
 		for s in "$pasta"/[0-9][0-9]_*.sh; do
 			echo ""
 			echo ">>> A correr $s"
-			if [ "$s" = "$pasta/10_atualizacoes_backup_sh" ]; then
+			if [ "$s" = "$pasta/10_atualizacoes_backup.sh" ]; then
 		bash "$s" backup
 	else
 		bash "$s"
@@ -84,7 +96,7 @@ while [ "$opcao" != "0" ]; do
 	*) echo "opcao invalida." ;;
 	esac
 else
-	bash "$pasta/script"
+	bash "$pasta/$script"
 		fi
 		else
 			echo "O script $script ainda não existe." # para evitar erros durante a elaboração
