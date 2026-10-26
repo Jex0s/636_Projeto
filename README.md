@@ -64,4 +64,11 @@ UC00636 - Projeto de Scripting
 
 ~ Removidos os branches já juntados ao main ~
 
+~ Script 02: mariadb-secure-installation com respostas automáticas (só pede a password) ~
+
+~ Email de alertas: Postfix como relay para o Gmail (script 05), alertas do Fail2ban e do script 11 testados ~
+
+~ Resolvido bloqueio SELinux do Postfix (etiqueta errada em /var/lib/postfix) com restorecon ~
+
 ----------
+
