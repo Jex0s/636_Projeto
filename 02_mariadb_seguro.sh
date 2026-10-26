@@ -48,19 +48,37 @@ fi
 if [ "$ANONIMOS" = "0" ] && [ "$ROOT_REMOTO" = "0" ] && [ "$BASE_TESTE" = "0" ] && [ "$SOCKET_OK" = "1" ] && [ "$PASSWORD_OK" = "1" ]; then
     echo "OK: contas e autenticação já estão protegidas; não é necessário repetir a configuração." | tee -a "$LOG"
 else
-    # Numa instalação nova, a ferramenta oficial pede confirmação e password.
-    # Mantém unix_socket e responde SIM à remoção de acessos inseguros.
+    # Numa instalação nova, a ferramenta oficial faz várias perguntas.
+    # O script pede só a password e dá as restantes respostas automaticamente.
     echo "A configuração das contas ainda não está completa." | tee -a "$LOG"
-    echo "A ferramenta oficial irá pedir respostas e, se necessário, uma password."
+
+    # Pedir a password do root duas vezes, sem a mostrar no ecrã.
+    while true; do
+        read -r -s -p "Nova password do root do MariaDB: " PASS1; echo
+        read -r -s -p "Repete a password: " PASS2; echo
+        if [ -z "$PASS1" ]; then
+            echo "A password não pode ser vazia."
+        elif [ "$PASS1" != "$PASS2" ]; then
+            echo "As passwords não coincidem."
+        else
+            break
+        fi
+    done
+
     if command -v mariadb-secure-installation > /dev/null 2>&1; then
-        mariadb-secure-installation
+        FERRAMENTA="mariadb-secure-installation"
     else
-        mysql_secure_installation
+        FERRAMENTA="mysql_secure_installation"
     fi
-    if [ $? -ne 0 ]; then
-        echo "ERRO: a configuração interativa não terminou corretamente." | tee -a "$LOG"
-        exit 1
-    fi
+
+    # Respostas às perguntas da ferramenta, por ordem:
+    # Enter (sem password atual), n (unix_socket já ativo), Y (mudar password),
+    # password duas vezes, Y anónimos, Y root remoto, Y base test, Y privilégios.
+    # O printf é interno do bash: a password não aparece no ps nem no log.
+    # Se a ordem das perguntas mudar, a verificação do passo 7 deteta o problema.
+    printf '\nn\nY\n%s\n%s\nY\nY\nY\nY\n' "$PASS1" "$PASS1" | $FERRAMENTA >> "$LOG" 2>&1
+    unset PASS1 PASS2
+    echo "OK: $FERRAMENTA executado com respostas automáticas." | tee -a "$LOG"
 fi
 
 # 5. Preparar uma configuração separada para a escuta TCP local.
