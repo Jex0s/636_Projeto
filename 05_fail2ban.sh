@@ -8,8 +8,9 @@
 # Este script deve ser executado com: sudo ./05_fail2ban.sh
 # ==============================================================
  
-# Email para os alertas. Fica vazio ate o envio de email estar configurado.
-EMAIL=""
+# Conta Gmail do projeto: envia os alertas e tambem os recebe.
+# Vazio = sem email (os bloqueios funcionam, mas sem alerta).
+EMAIL="centosservidorweb@gmail.com"
  
 # PASSO 1 - Confirmar que o utilizador tem permissoes de administrador.
 if [ "$EUID" -ne 0 ]; then
@@ -51,6 +52,59 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "OK: Fail2ban instalado." | tee -a "$LOG"
+
+# PASSO 3B - Preparar o envio de email pelo Gmail (Postfix como relay).
+# O servidor nao recebe email: o Postfix so aceita mensagens da propria
+# maquina (loopback-only) e entrega-as ao Gmail pela porta 587 com TLS.
+# A palavra-passe de app do Gmail e pedida aqui e NUNCA vai para o repositorio.
+if [ -n "$EMAIL" ]; then
+    echo "PASSO 3B - Envio de email pelo Gmail (Postfix)" | tee -a "$LOG"
+    # whois: o Fail2ban junta ao alerta a informacao do IP bloqueado.
+    dnf install -y postfix cyrus-sasl-plain s-nail whois >> "$LOG" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "ERRO: nao foi possivel instalar o Postfix." | tee -a "$LOG"
+        exit 1
+    fi
+
+    # texthash le o ficheiro diretamente (o CentOS 10 ja nao usa o formato hash).
+    postconf -e "relayhost = [smtp.gmail.com]:587" \
+        "smtp_sasl_auth_enable = yes" \
+        "smtp_sasl_password_maps = texthash:/etc/postfix/sasl_passwd" \
+        "smtp_sasl_security_options = noanonymous" \
+        "smtp_tls_security_level = encrypt" \
+        "smtp_tls_CAfile = /etc/pki/tls/certs/ca-bundle.crt" \
+        "inet_interfaces = loopback-only"
+
+    # So pede a palavra-passe se ainda nao estiver guardada.
+    if [ ! -s /etc/postfix/sasl_passwd ]; then
+        APP=""
+        while [ -z "$APP" ]; do
+            read -r -s -p "Palavra-passe de app do Gmail ($EMAIL), sem espacos: " APP; echo
+        done
+        umask 077
+        echo "[smtp.gmail.com]:587 $EMAIL:$APP" > /etc/postfix/sasl_passwd
+        unset APP
+        chmod 600 /etc/postfix/sasl_passwd
+        echo "OK: palavra-passe de app guardada em /etc/postfix/sasl_passwd (chmod 600)." | tee -a "$LOG"
+    else
+        echo "OK: palavra-passe de app ja configurada." | tee -a "$LOG"
+    fi
+
+    # Repor as etiquetas SELinux: com etiquetas erradas o Postfix nao arranca
+    # pelo systemd (erro "master.lock: Permission denied").
+    restorecon -R /var/lib/postfix /var/spool/postfix /etc/postfix
+
+    systemctl enable postfix >> "$LOG" 2>&1
+    systemctl restart postfix
+    if [ $? -ne 0 ]; then
+        echo "ERRO: o Postfix nao arrancou. Ver: journalctl -u postfix" | tee -a "$LOG"
+        exit 1
+    fi
+
+    echo "Teste de envio do script 05 em $(date)" | mail -s "UC00636 - teste de email ($(hostname))" "$EMAIL"
+    echo "OK: Postfix ativo; email de teste enviado para $EMAIL." | tee -a "$LOG"
+    echo "Confirmar envio: journalctl -u postfix | grep status=" | tee -a "$LOG"
+fi
  
 # PASSO 4 - Escolher a acao quando um IP e bloqueado.
 # action_   -> so bloqueia o IP

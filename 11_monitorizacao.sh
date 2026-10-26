@@ -10,8 +10,9 @@
 # Este script deve ser executado com: sudo ./11_monitorizacao.sh
 # ==============================================================
 
-# Email para os alertas. Vazio = o alerta fica so registado nos logs.
-EMAIL=""
+# Email para os alertas (o envio e configurado no script 05).
+# Vazio = o alerta fica so registado nos logs.
+EMAIL="centosservidorweb@gmail.com"
 
 # PASSO 1 - Confirmar que o utilizador tem permissoes de administrador.
 if [ "$EUID" -ne 0 ]; then
@@ -182,6 +183,10 @@ echo "OK: relatorio agendado de hora a hora (/etc/cron.d/uc00636-monitorizacao).
 
 if [ -z "$EMAIL" ]; then
     echo "AVISO: sem email definido, os alertas ficam em /var/log/seguranca.log" | tee -a "$LOG"
+elif ! systemctl is-active --quiet postfix || ! command -v mail > /dev/null; then
+    echo "AVISO: Postfix nao configurado (corre o script 05); os alertas ficam em /var/log/seguranca.log" | tee -a "$LOG"
+else
+    echo "OK: alertas enviados por email para $EMAIL" | tee -a "$LOG"
 fi
 
 # PASSO 5 - Gerar ja o primeiro relatorio e mostra-lo.
