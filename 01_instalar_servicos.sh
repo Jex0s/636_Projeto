@@ -154,4 +154,22 @@ rm -f "$FICHEIRO_TESTE"
 
 
 echo "OK: PHP interpretado corretamente pelo Apache." | tee -a "$LOG"
+
+# PASSO 13 - Testar o acesso pelo IP publico (so informativo).
+# Nao termina com erro: o acesso externo depende do router e da porta 80,
+# que so e aberta no script 03.
+echo "PASSO 13 - Teste pelo IP publico" | tee -a "$LOG"
+IP_PUBLICO=$(curl -4 -s --max-time 5 ifconfig.me)
+if [ -z "$IP_PUBLICO" ]; then
+    echo "AVISO: nao foi possivel obter o IP publico." | tee -a "$LOG"
+else
+    echo "IP publico detetado: $IP_PUBLICO" | tee -a "$LOG"
+    curl -s --max-time 5 -o /dev/null "http://$IP_PUBLICO/"
+    if [ $? -eq 0 ]; then
+        echo "OK: website acessivel pelo IP publico." | tee -a "$LOG"
+    else
+        echo "AVISO: sem acesso pelo IP publico (falta port forwarding no router ou rede em CGNAT)." | tee -a "$LOG"
+    fi
+fi
+
 echo "===== Script 01 concluido: $(date) =====" | tee -a "$LOG"

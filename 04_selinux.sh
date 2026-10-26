@@ -69,9 +69,15 @@ echo "OK: auditd ativo." | tee -a "$LOG"
 
 # PASSO 4 - Confirmar as ferramentas e a disponibilidade do registo.
 echo "PASSO 4 - Verificar ficheiro de auditoria e ferramenta sealert" | tee -a "$LOG"
+
+# Se o sealert nao existir, instala-se o pacote que o fornece.
 if ! command -v sealert >/dev/null 2>&1; then
-    echo "ERRO: sealert nao esta instalado." | tee -a "$LOG"
-    exit 1
+    echo "AVISO: sealert nao instalado; a instalar setroubleshoot-server." | tee -a "$LOG"
+    dnf install -y setroubleshoot-server >> "$PASTA_RELATORIOS/04_dnf.log" 2>&1
+    if ! command -v sealert >/dev/null 2>&1; then
+        echo "ERRO: nao foi possivel instalar o sealert. Ver $PASTA_RELATORIOS/04_dnf.log" | tee -a "$LOG"
+        exit 1
+    fi
 fi
 
 if [ ! -r "$AUDIT_LOG" ]; then
