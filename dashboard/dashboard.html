@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="UC00636: dashboard dinâmico, métricas agregadas e histórico de testes de CentOS Stream 10.">
+  <title>UC00636 · Server Dashboard</title>
+  <style>
+    :root{--bg:#080e1c;--panel:#111b30;--panel2:#15223a;--line:#25334b;--text:#edf4ff;--muted:#9db0c9;--cyan:#54d9e8;--blue:#668aff;--green:#59deaf;--orange:#fac683;--shadow:0 16px 45px rgba(0,0,0,.24)}
+    *,*::before,*::after{box-sizing:border-box} html{scroll-behavior:smooth}
+    body{margin:0;background:radial-gradient(ellipse 66% 30% at 84% -5%,#17395b 0%,transparent 70%),radial-gradient(ellipse 60% 22% at 0% 24%,#151f47 0%,transparent 72%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+    a{color:inherit;text-decoration:none}a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+    .app{display:grid;grid-template-columns:235px minmax(0,1fr);min-height:100vh}
+    .sidebar{position:sticky;top:0;height:100vh;background:rgba(10,18,34,.92);border-right:1px solid var(--line);padding:27px 15px 20px;display:flex;flex-direction:column;gap:25px;backdrop-filter:blur(18px)}
+    .logo{display:flex;align-items:center;gap:11px;padding:5px 10px 19px;border-bottom:1px solid var(--line)}
+    .logomark{width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,var(--cyan),#5477ea);box-shadow:0 7px 20px #3bbde040;color:#091224;font-size:22px;font-weight:900}
+    .logo strong{font-size:16px;letter-spacing:.065em;display:block}.logo small{font-size:10px;color:var(--muted);letter-spacing:.12em}
+    .navtitle{font-size:10px;font-weight:800;color:#788aa6;letter-spacing:.16em;padding-left:15px;margin:2px 0 9px}
+    .links{display:grid;gap:6px}
+    .links a{display:flex;gap:12px;align-items:center;padding:10px 14px;color:#b3c2d8;border-radius:11px;font-size:13px;font-weight:600;transition:background .2s,color .2s}
+    .links a:hover,.links a:first-child{background:#1b2c49;color:var(--text)}.links a svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .side-bottom{margin-top:auto;padding:16px 12px;background:#142139;border:1px solid var(--line);border-radius:13px}
+    .side-bottom .tiny{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+    .side-bottom strong{display:block;margin:5px 0;font-size:13px}.side-bottom p{margin:0;font-size:11px;color:var(--muted);line-height:1.55}
+    .main{max-width:1640px;padding:34px clamp(20px,4.3vw,64px) 68px;margin:auto;width:100%;min-width:0}
+    .topbar,.titleline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .crumb{font-size:12px;color:#b1c6df;letter-spacing:.065em}.crumb span{color:var(--cyan)}
+    .date-chip{padding:7px 11px;color:#b8cbe1;border:1px solid #2a3951;background:#132038;border-radius:100px;font-size:11px;font-weight:650;white-space:nowrap}
+    .eyebrow{text-transform:uppercase;color:var(--cyan);letter-spacing:.17em;font-weight:850;font-size:11px;margin:0 0 10px}
+    .hero{position:relative;overflow:hidden;margin-top:25px;min-height:232px;border:1px solid #2a4260;border-radius:21px;padding:30px 36px;display:flex;align-items:center;justify-content:space-between;gap:15px;background:linear-gradient(110deg,#1b2d4b 0%,#142b46 53%,#102339 100%);box-shadow:var(--shadow)}
+    .hero:before{content:"";position:absolute;right:-140px;top:-200px;width:520px;height:520px;border-radius:50%;border:1px solid rgba(98,227,247,.23);box-shadow:0 0 0 45px rgba(72,160,225,.055),0 0 0 90px rgba(72,160,225,.035);pointer-events:none}
+    .hero:after{content:"";position:absolute;right:68px;top:-60px;width:220px;height:320px;transform:rotate(34deg);background:linear-gradient(180deg,transparent,#61d7fa10,transparent);pointer-events:none}
+    h1{font-size:clamp(27px,3.4vw,47px);letter-spacing:-.045em;line-height:1.08;margin:0 0 12px;font-weight:790;max-width:680px}
+    .hero p{max-width:620px;color:#bccee5;line-height:1.7;margin:0}.hero-graphic{position:relative;z-index:1;flex:0 0 170px;width:170px;height:170px;display:grid;place-items:center}
+    .orbit{position:absolute;inset:9px;border-radius:50%;border:1px dashed #52dbe35e;box-shadow:0 0 38px #50cbe425 inset}.orbit:after{content:"";position:absolute;width:11px;height:11px;background:var(--green);box-shadow:0 0 17px var(--green);border-radius:50%;top:0;right:26px}.inner-orbit{inset:29px;position:absolute;border:9px solid #4bd9e517;border-top-color:var(--cyan);border-bottom-color:#6489f0;border-radius:50%;transform:rotate(-30deg)}
+    .hero-count{font-size:45px;font-weight:850;line-height:1;text-align:center}.hero-count small{display:block;font-size:10px;letter-spacing:.16em;color:#c2d5ec;font-weight:800;margin-top:8px}
+    .notice{display:flex;align-items:flex-start;gap:11px;border:1px solid #2b445d;border-radius:13px;padding:13px 16px;color:#bcd3e9;background:#10253b;margin:16px 0 26px;font-size:12px;line-height:1.65}
+    .notice b{color:#e5f3ff}.notice .dot{margin-top:5px;flex:0 0 8px;height:8px;background:var(--cyan);border-radius:50%;box-shadow:0 0 12px #56cde666}
+    .section{margin-top:33px;scroll-margin-top:25px}.section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+    .section-head h2{font-size:19px;letter-spacing:-.025em;margin:0}.section-head .minor{font-size:12px;color:var(--muted)}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+    .card{background:linear-gradient(162deg,#152139,#10192c);border:1px solid #26354c;border-radius:15px;box-shadow:var(--shadow)}
+    .stat{padding:20px 20px 16px;min-height:147px;position:relative;overflow:hidden}.stat:before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));opacity:.85}
+    .stat .label{font-size:12px;font-weight:650;color:#a7bad2}.stat .figure{font-size:37px;letter-spacing:-.04em;font-weight:850;margin:10px 0 3px;line-height:1}.stat .figure span{font-size:17px;color:#aac5dc;letter-spacing:0}.stat .hint{font-size:11px;color:#8da4bf}
+    .two-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:16px}
+    .boxpad{padding:21px}.h3{font-size:14px;font-weight:800;margin:0 0 14px}.meta{font-size:11px;color:var(--muted)}
+    .service{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #26354a}.service:last-child{border-bottom:0;padding-bottom:0}.service:first-of-type{padding-top:0}
+    .service-ic{width:36px;height:36px;display:grid;place-items:center;background:#21334e;border-radius:10px;color:#89d3f6;font-size:14px;font-weight:900}.service strong{display:block;font-size:13px}.service small{color:var(--muted);display:block;font-size:11px;margin-top:2px}
+    .pill{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:5px 7px;background:#13392f;border:1px solid #245846;color:#75ecc1;font-size:10px;font-weight:800;white-space:nowrap}
+    .pill:before{content:"";height:5px;width:5px;background:#63e8b1;border-radius:50%}
+    .stack{display:grid;gap:10px}.flow-block{border:1px solid #2a3e58;background:#14243c;border-radius:10px;text-align:center;padding:10px}.flow-block strong{font-size:12px}.flow-block p{margin:3px 0 0;color:var(--muted);font-size:10px}.flow-arrow{text-align:center;color:#5bdbe8;line-height:10px;font-size:18px}
+    .results{display:grid;grid-template-columns:1fr 1fr;gap:16px}.test-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #2a3952;font-size:12px}.test-row:first-child{border-top:0}.http{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;font-weight:850;padding:5px 10px;border-radius:7px;background:#173c35;color:#7aefbe}.http.blocked{background:#463323;color:#ffcf91}
+    .meter{margin:13px 0 8px}.meter-row{display:grid;grid-template-columns:86px minmax(0,1fr) 22px;gap:10px;align-items:center;font-size:11px;color:#acc0d9;margin:12px 0}.track{height:7px;border-radius:20px;background:#26354a;overflow:hidden}.bar{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--cyan));min-width:0}.bar.yellow{background:linear-gradient(90deg,#f1a668,#f5d39a)}
+    .footnote{color:var(--muted);font-size:11px;line-height:1.55;margin:12px 0 0}
+    .scripts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .script{border:1px solid #26354d;border-radius:13px;padding:15px;background:linear-gradient(150deg,#152139,#111c30);min-height:112px;transition:transform .18s,border-color .18s}.script:hover{transform:translateY(-2px);border-color:#3a6880}
+    .script-head{display:flex;gap:10px;align-items:center;margin-bottom:9px}.script-number{flex:none;display:grid;place-items:center;border-radius:8px;width:30px;height:30px;background:#1d3c54;color:#68d9f0;font-family:ui-monospace,Consolas,monospace;font-size:12px;font-weight:850}.script strong{font-size:12px}.script p{font-size:11px;color:#a8bcd4;line-height:1.55;margin:0}
+    .highlight-card{background:linear-gradient(110deg,#153847,#14283f);border:1px solid #31616a;border-radius:14px;padding:21px;display:flex;align-items:flex-start;gap:18px;justify-content:space-between}.highlight-card h3{font-size:15px;margin:0 0 6px}.highlight-card p{font-size:12px;color:#b9d2de;margin:0;line-height:1.65}.highlight-tag{flex:none;padding:6px 10px;border:1px solid #357e70;border-radius:7px;background:#145046;color:#87edbf;font-weight:850;font-size:11px}
+    footer{margin-top:43px;border-top:1px solid var(--line);padding:21px 0 0;color:#8c9eba;font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}footer a{color:#8bd5e4;text-decoration:underline;text-underline-offset:3px}
+    @media(max-width:1140px){.app{grid-template-columns:185px minmax(0,1fr)}.main{padding:27px 24px 55px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.scripts{grid-template-columns:repeat(2,minmax(0,1fr))}.two-cols{grid-template-columns:1fr}.hero-graphic{flex-basis:125px;width:125px;height:125px}.hero-count{font-size:31px}}
+    @media(max-width:700px){.app{display:block}.sidebar{position:static;height:auto;padding:14px 15px;gap:11px}.logo{padding:0 0 11px}.links{display:flex;overflow:auto;gap:5px;padding-bottom:2px}.links a{white-space:nowrap;padding:8px 10px;flex:none}.links a svg{width:15px;height:15px}.navtitle,.side-bottom{display:none}.main{padding:20px 15px 45px}.hero{padding:25px 21px;min-height:210px}.hero-graphic{display:none}.stats,.results,.scripts{grid-template-columns:1fr 1fr}.stat{padding:17px 14px;min-height:130px}.stat .figure{font-size:32px}.results{grid-template-columns:1fr}.highlight-card{display:block}.highlight-tag{display:inline-block;margin-top:12px}}
+    @media(max-width:440px){.scripts{grid-template-columns:1fr}.service{grid-template-columns:31px minmax(0,1fr);gap:8px}.service .pill{grid-column:2;width:max-content}.hero h1{font-size:29px}.date-chip{white-space:normal}.stat .figure{font-size:29px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.script{transition:none}}
+
+    /* Indicadores dinâmicos — sem dependências externas */
+    .live-header{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .live-tag{display:inline-flex;align-items:center;gap:8px;border-radius:999px;border:1px solid #356c65;background:#11382f;color:#8ce8c6;padding:6px 11px;font-size:11px;font-weight:800}
+    .live-tag.warn{color:#ffd4a3;background:#483222;border-color:#805b37}
+    .live-tag.err{color:#ffc2c2;background:#482729;border-color:#8a4448}
+    .live-tag::before{content:'';width:7px;height:7px;border-radius:100%;background:currentColor;box-shadow:0 0 10px currentColor}
+    .live-values{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:14px}
+    .live-value{padding:18px 20px;min-height:132px}.live-value .number{font-size:35px;font-weight:850;letter-spacing:-.04em;margin:10px 0 5px}
+    .live-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+    .live-small{padding:19px 22px}.live-list{display:grid;grid-template-columns:1fr 1fr;gap:10px 17px}
+    .live-key{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #273a50;padding:9px 0;font-size:12px;gap:8px}
+    .live-key .state{color:#96f0c4;font-size:11px;font-weight:850;white-space:nowrap}
+    .live-key .state.off{color:#ffd59e}.live-key .state.missing{color:#aebacc}
+    .mini-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mini-values strong{font-size:24px;display:block;margin-top:3px}
+    .live-refresh{background:#1a3651;border:1px solid #356380;border-radius:10px;color:#e6f5ff;font-weight:700;font-size:12px;padding:9px 13px;cursor:pointer}
+    .live-refresh:hover{background:#244861}.live-refresh:disabled{opacity:.5;cursor:wait}
+    .timestamp{color:#9cb9d7;font-size:11px;margin-top:9px}
+    @media(max-width:1000px){.live-values{grid-template-columns:repeat(2,minmax(0,1fr))}.live-grid{grid-template-columns:1fr}}
+    @media(max-width:550px){.live-values{grid-template-columns:repeat(2,minmax(0,1fr))}.live-value{padding:14px;min-height:116px}.live-value .number{font-size:27px}.live-list{grid-template-columns:1fr}}
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" aria-label="Navegação">
+    <div class="logo"><div class="logomark" aria-hidden="true">U</div><div><strong>UC00636</strong><small>SERVER DASHBOARD</small></div></div>
+    <nav aria-label="Secções do dashboard">
+      <div class="navtitle">PAINEL</div>
+      <div class="links">
+        <a href="#inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Visão geral</a>
+        <a href="#direto"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h7M11 17h7"/></svg>Infraestrutura</a>
+        <a href="#resultados"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M7 16l4-5 3 3 5-7"/></svg>Resultados</a>
+        <a href="#scripts"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg>Scripts Bash</a>
+        <a href="#https"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4m-4 5v2"/></svg>HTTPS e backups</a>
+      </div>
+    </nav>
+    <div class="side-bottom"><div class="tiny">AMBIENTE</div><strong>CentOS Stream 10</strong><p>Projeto de automatização de serviços, segurança e monitorização de um servidor Linux.</p></div>
+  </aside>
+
+  <main class="main" id="inicio">
+    <div class="topbar"><div class="crumb">PROJETOS <span>/</span> UC00636 <span>/</span> DASHBOARD</div><div class="date-chip">UC00636 · INDICADORES DA VM</div></div>
+    <section class="hero" aria-labelledby="titulo-principal">
+      <div><div class="eyebrow">CENTRO DE OPERAÇÕES · DEMONSTRAÇÃO</div><h1 id="titulo-principal">Servidor Linux.<br>Automatização com controlo.</h1><p>Instalação, proteção, otimização e manutenção de um servidor web em CentOS Stream 10 — com onze scripts Bash e um menu central.</p></div>
+      <div class="hero-graphic" aria-hidden="true"><div class="orbit"></div><div class="inner-orbit"></div><div class="hero-count">11<small>MÓDULOS</small></div></div>
+    </section>
+    <div class="notice" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="live-notice"><b>A contactar a VM…</b> Os indicadores dinâmicos são gerados localmente; os resultados históricos aparecem noutra secção.</span></div>
+
+
+    <section class="section" id="direto" aria-labelledby="ao-vivo">
+      <div class="section-head"><div><p class="eyebrow" style="margin-bottom:6px">MONITORIZAÇÃO LOCAL · ATUALIZAÇÃO AUTOMÁTICA</p><h2 id="ao-vivo">Estado atual da máquina virtual</h2></div>
+        <div class="live-header"><span id="live-tag" class="live-tag warn">A aguardar dados</span><button class="live-refresh" type="button" id="refresh-button">Atualizar agora</button></div>
+      </div>
+      <div class="live-values">
+        <article class="card live-value"><div class="label">CPU utilizada</div><div class="number" id="v-cpu">—</div><div class="track"><div class="bar" id="bar-cpu" style="width:0"></div></div></article>
+        <article class="card live-value"><div class="label">Memória RAM</div><div class="number" id="v-ram">—</div><div class="track"><div class="bar" id="bar-ram" style="width:0"></div></div></article>
+        <article class="card live-value"><div class="label">Disco principal</div><div class="number" id="v-disk">—</div><div class="track"><div class="bar" id="bar-disk" style="width:0"></div></div></article>
+        <article class="card live-value"><div class="label">Tempo de atividade</div><div class="number" id="v-uptime" style="font-size:27px">—</div><div class="hint">Desde o último arranque</div></article>
+      </div>
+      <div class="live-grid">
+        <article class="card live-small"><h3 class="h3">Serviços em tempo real</h3>
+          <div class="live-list">
+            <div class="live-key">Apache <span class="state missing" id="svc-apache">A verificar</span></div>
+            <div class="live-key">PHP-FPM <span class="state missing" id="svc-php">A verificar</span></div>
+            <div class="live-key">MariaDB <span class="state missing" id="svc-maria">A verificar</span></div>
+            <div class="live-key">Fail2ban <span class="state missing" id="svc-fail2ban">A verificar</span></div>
+            <div class="live-key">ModSecurity <span class="state missing" id="svc-modsec">A verificar</span></div>
+            <div class="live-key">Cron <span class="state missing" id="svc-cron">A verificar</span></div>
+          </div>
+        </article>
+        <article class="card live-small"><h3 class="h3">Segurança e atividade</h3>
+          <div class="live-list" style="margin-bottom:18px">
+            <div class="live-key">SELinux <span class="state missing" id="sec-selinux">A verificar</span></div>
+            <div class="live-key">Certificado TLS <span class="state missing" id="sec-tls">A verificar</span></div>
+          </div>
+          <div class="mini-values">
+            <div><div class="meta">Pedidos hoje</div><strong id="http-requests">—</strong></div>
+            <div><div class="meta">HTTP 4xx</div><strong id="http-4xx">—</strong></div>
+            <div><div class="meta">HTTP 5xx</div><strong id="http-5xx">—</strong></div>
+          </div>
+          <p class="footnote">Último backup identificado: <strong id="last-backup">—</strong>. O estado do certificado é local e não garante acesso externo.</p>
+        </article>
+      </div>
+      <p class="timestamp" id="live-time">A obter informação…</p>
+    </section>
+
+    <section class="section" aria-labelledby="indicadores"><div class="section-head"><h2 id="indicadores">Resultados históricos do ensaio</h2><span class="minor">26/10/2026 · dados documentados, não leituras atuais</span></div>
+      <div class="stats">
+        <article class="card stat"><div class="label">Scripts Bash no projeto</div><div class="figure">11</div><div class="hint">+ menu principal</div></article>
+        <article class="card stat"><div class="label">Serviços base verificados</div><div class="figure">03</div><div class="hint">Apache · PHP-FPM · MariaDB</div></article>
+        <article class="card stat"><div class="label">Pedidos suspeitos bloqueados</div><div class="figure">02</div><div class="hint">Testes SQLi e XSS · HTTP 403</div></article>
+        <article class="card stat"><div class="label">Backup do ensaio</div><div class="figure">536 <span>KB</span></div><div class="hint">Tamanho aproximado · verificado</div></article>
+      </div>
+    </section>
+
+    <section class="section" id="servicos" aria-labelledby="infra"><div class="section-head"><h2 id="infra">Infraestrutura e serviços</h2><span class="minor">Arquitetura e confirmações históricas do ensaio</span></div>
+      <div class="two-cols">
+        <article class="card boxpad"><h3 class="h3">Serviços principais</h3>
+          <div class="service"><div class="service-ic">A</div><div><strong>Apache HTTP Server</strong><small>Servidor HTTP · conteúdo web</small></div><span class="pill">Validado no ensaio</span></div>
+          <div class="service"><div class="service-ic">P</div><div><strong>PHP-FPM</strong><small>Processamento de aplicações PHP</small></div><span class="pill">Validado no ensaio</span></div>
+          <div class="service"><div class="service-ic">M</div><div><strong>MariaDB</strong><small>Sistema de gestão de bases de dados</small></div><span class="pill">Validado no ensaio</span></div>
+          <p class="footnote">O estado "validado" refere-se ao ensaio de 26/10; não confirma o estado presente dos serviços.</p>
+        </article>
+        <article class="card boxpad"><h3 class="h3">Fluxo simplificado de um pedido PHP</h3>
+          <div class="stack"><div class="flow-block"><strong>Cliente / Navegador</strong><p>Pedido HTTP ou HTTPS</p></div><div class="flow-arrow">↓</div><div class="flow-block"><strong>Apache + ModSecurity</strong><p>Servidor web e inspeção de pedidos</p></div><div class="flow-arrow">↓</div><div class="flow-block"><strong>PHP-FPM → MariaDB (quando necessário)</strong><p>Execução da aplicação e acesso aos dados</p></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="resultados" aria-labelledby="seguranca"><div class="section-head"><h2 id="seguranca">Segurança e resultados observados</h2><span class="minor">Testes funcionais documentados</span></div>
+      <div class="results">
+        <article class="card boxpad"><h3 class="h3">ModSecurity + OWASP CRS</h3>
+          <div class="test-row"><span>Pedido HTTP legítimo</span><span class="http">200 OK</span></div>
+          <div class="test-row"><span>Teste controlado de SQL Injection</span><span class="http blocked">403 BLOQUEADO</span></div>
+          <div class="test-row"><span>Teste controlado de Cross-Site Scripting</span><span class="http blocked">403 BLOQUEADO</span></div>
+          <p class="footnote">Estes resultados comprovam os três pedidos testados, não a ausência de todas as vulnerabilidades.</p>
+        </article>
+        <article class="card boxpad"><h3 class="h3">Relatório de monitorização do ensaio</h3>
+          <div class="meter">
+            <div class="meter-row"><span>Pedidos HTTP</span><div class="track"><div class="bar" style="width:100%"></div></div><b>6</b></div>
+            <div class="meter-row"><span>Erros 4xx</span><div class="track"><div class="bar yellow" style="width:33.33%"></div></div><b>2</b></div>
+            <div class="meter-row"><span>Erros 5xx</span><div class="track"><div class="bar" style="width:0%"></div></div><b>0</b></div>
+            <div class="meter-row"><span>Falhas SSH</span><div class="track"><div class="bar" style="width:0%"></div></div><b>0</b></div>
+            <div class="meter-row"><span>IPs banidos</span><div class="track"><div class="bar" style="width:0%"></div></div><b>0</b></div>
+          </div>
+          <p class="footnote">Métricas registadas no primeiro relatório do Script 11 durante o ensaio.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="scripts" aria-labelledby="automatizacao"><div class="section-head"><h2 id="automatizacao">Automatização · 11 scripts</h2><span class="minor">Organização modular por responsabilidade</span></div>
+      <div class="scripts">
+        <article class="script"><div class="script-head"><span class="script-number">01</span><strong>Instalação base</strong></div><p>Instala Apache, PHP-FPM e MariaDB; testa os serviços e o website.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">02</span><strong>Segurança MariaDB</strong></div><p>Protege contas e restringe o acesso local; automatiza as respostas de segurança.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">03</span><strong>Rede e firewall</strong></div><p>Diagnostica a rede e configura os serviços SSH, HTTP e HTTPS no firewalld.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">04</span><strong>SELinux</strong></div><p>Verifica o modo Enforcing e analisa os registos de auditoria.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">05</span><strong>Fail2ban e email</strong></div><p>Configura proteção SSH/Apache e prepara alertas com Postfix/Gmail.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">06</span><strong>ModSecurity</strong></div><p>Instala o WAF e as regras OWASP CRS; testa pedidos normais e suspeitos.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">07</span><strong>Apache e HTTPS</strong></div><p>Otimiza desempenho e permite preparar, emitir e aplicar certificados TLS.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">08</span><strong>Tuning MariaDB</strong></div><p>Ajusta o InnoDB Buffer Pool em função da RAM e valida parâmetros.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">09</span><strong>Configuração PHP</strong></div><p>Define limites e fuso horário; mantém um backup da configuração.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">10</span><strong>Backups e updates</strong></div><p>Cria e verifica backups; permite atualizações e agendamentos opcionais.</p></article>
+        <article class="script"><div class="script-head"><span class="script-number">11</span><strong>Monitorização</strong></div><p>Sincroniza a hora, gera relatórios e configura alertas e cron.</p></article>
+      </div>
+    </section>
+
+    <section class="section" id="https" aria-labelledby="continuidade"><div class="section-head"><h2 id="continuidade">HTTPS, backups e continuidade</h2><span class="minor">Recursos demonstrados na fase de testes</span></div>
+      <div class="results">
+        <article class="card boxpad"><h3 class="h3">Certificado TLS · Let's Encrypt</h3><p class="meta">O acesso HTTPS com certificado válido foi confirmado externamente no ensaio anterior.</p><div class="test-row"><span>Emissão de certificado de produção</span><span class="http">VALIDADO</span></div><div class="test-row"><span>Apache configurado com TLS</span><span class="http">VALIDADO</span></div><p class="footnote">Na nova VM limpa é necessário emitir e aplicar novamente o certificado. A renovação foi preparada, mas não ativada.</p></article>
+        <article class="card boxpad"><h3 class="h3">Proteção e recuperação de dados</h3><p class="meta">Script 10 · website e base de dados</p><div class="test-row"><span>Arquivo comprimido e dump MariaDB</span><span class="http">CRIADO</span></div><div class="test-row"><span>Verificação de integridade</span><span class="http">CONFIRMADA</span></div><p class="footnote">Retenção prevista: 14 backups. Os agendamentos de backup e atualização dependem de ativação explícita.</p></article>
+      </div>
+    </section>
+
+    <section class="section"><div class="highlight-card"><div><h3>Monitorização simples, ligada ao próprio servidor.</h3><p>A VM atualiza um pequeno ficheiro de indicadores por systemd. O Apache apenas publica HTML e JSON, sem expor comandos administrativos ou passwords.</p></div><span class="highlight-tag">HTML + BASH</span></div></section>
+    <footer><span>UC00636 · Projeto de Automatização de Servidores · CentOS Stream 10</span><span>Dados atuais e ensaio histórico · <a href="https://github.com/Jex0s/636_Projeto" target="_blank" rel="noopener noreferrer">Repositório GitHub</a></span></footer>
+  </main>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const el = (id) => document.getElementById(id);
+  const labels = {active:'Ativo',inactive:'Inativo',not_installed:'Não instalado'};
+  let running = false;
+  function number(id, value, suffix = '') {
+    const node = el(id);
+    node.textContent = typeof value === 'number' && Number.isFinite(value) ? `${value}${suffix}` : '—';
+  }
+  function state(id, value, custom = null) {
+    const node = el(id);
+    const name = custom?.[value] || labels[value] || 'Indisponível';
+    node.textContent = name;
+    node.className = 'state ' + (value === 'active' || value === 'Enforcing' || value === 'certificate_valid' ? '' : value === 'inactive' || value === 'Permissive' || value === 'certificate_expired' ? 'off' : 'missing');
+  }
+  function indicator(label, css, message) {
+    el('live-tag').textContent = label;
+    el('live-tag').className = `live-tag ${css}`;
+    el('live-notice').textContent = message;
+  }
+  async function refresh() {
+    if (running) return;
+    running = true;
+    el('refresh-button').disabled = true;
+    try {
+      const response = await fetch(`dashboard-status.json?nocache=${Date.now()}`, {cache:'no-store', credentials:'omit'});
+      if (!response.ok) throw Error('Dados ainda não publicados');
+      const data = await response.json();
+      if (data.schema !== 1 || !data.metrics || !data.services) throw Error('Formato inesperado');
+      const age = Date.now() - Date.parse(data.generated_at);
+      if (!Number.isFinite(age)) throw Error('Data de atualização inválida');
+      const stale = age > 180000 || age < -120000;
+      if (stale) indicator('Dados desatualizados', 'warn', 'A recolha parece estar parada ou o relógio está incorreto. Os números abaixo pertencem à última atualização disponível.');
+      else indicator('Dados da VM atual', '', 'Estes indicadores vêm diretamente da máquina virtual que está a disponibilizar a página. Recolha automática a cada minuto.');
+      for (const [id,key] of [['v-cpu','cpu_percent'],['v-ram','ram_percent'],['v-disk','disk_percent']]) {
+        const v = data.metrics[key];
+        number(id,v,'%');
+        el('bar-'+id.substring(2)).style.width = typeof v === 'number' && Number.isFinite(v) ? `${Math.max(0,Math.min(100,v))}%` : '0%';
+      }
+      const seconds = data.metrics.uptime_seconds;
+      el('v-uptime').textContent = typeof seconds === 'number' ? `${Math.floor(seconds/86400)}d ${Math.floor(seconds%86400/3600)}h` : '—';
+      for (const [id,key] of [['svc-apache','apache'],['svc-php','php_fpm'],['svc-maria','mariadb'],['svc-fail2ban','fail2ban'],['svc-modsec','modsecurity'],['svc-cron','cron']]) state(id,data.services[key]);
+      state('sec-selinux',data.security?.selinux, {Enforcing:'Enforcing',Permissive:'Permissive',Disabled:'Desativado'});
+      state('sec-tls',data.security?.tls, {certificate_valid:'Válido na VM',certificate_expired:'Expirado',not_configured:'Sem certificado'});
+      number('http-requests',data.http_today?.requests);
+      number('http-4xx',data.http_today?.errors_4xx);
+      number('http-5xx',data.http_today?.errors_5xx);
+      el('last-backup').textContent = data.last_backup || 'Ainda não identificado';
+      el('live-time').textContent = `Última recolha: ${new Date(data.generated_at).toLocaleString('pt-PT')} · atualização automática do painel a cada 20 segundos`;
+    } catch (err) {
+      indicator('Sem dados atuais', 'err', 'O painel abriu, mas não foi possível obter os dados desta VM. Instala o módulo do dashboard e confirma o timer de recolha.');
+      el('live-time').textContent = 'A recolha do servidor ainda não está disponível.';
+    } finally {
+      running = false;
+      el('refresh-button').disabled = false;
+    }
+  }
+  el('refresh-button').addEventListener('click',refresh);
+  refresh();
+  setInterval(refresh,20000);
+})();
+</script>
+</body>
+</html>

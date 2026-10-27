@@ -28,6 +28,7 @@ while [ "$opcao" != "0" ]; do
 	echo "10 - Atualizações e backup"
 	echo "11 - Monitorização"
 	echo "12 - Correr todos (1 a 11)"
+	echo "13 - Instalar Dashboard (opcional)"
 	echo " 0 - Sair"
 	echo "========================================"
 	read -p "Escolhe uma opção: " opcao
@@ -45,6 +46,7 @@ while [ "$opcao" != "0" ]; do
 		10) 	script="10_atualizacoes_backup.sh" ;;
 		11) 	script="11_monitorizacao.sh" ;;
 		12) 	script="todos" ;;
+		13) 	script="dashboard/install.sh" ;;
 		0) 	echo "A sair..."
 			exit 0 ;;
 		*)	echo "Opção inválida."
